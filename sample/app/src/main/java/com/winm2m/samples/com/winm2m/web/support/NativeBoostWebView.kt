@@ -26,10 +26,13 @@ class NativeBoostWebView @JvmOverloads constructor(
     private var interceptDomainPrefix: String? = null
     private val localCacheDir: File = File(context.cacheDir, "webview_cache")
     private var onPageLoadTimeCallback: ((Long) -> Unit)? = null
+    private val cacheMap: MutableMap<String, ByteArray> = mutableMapOf()
 
     init {
         if (!localCacheDir.exists()) {
             localCacheDir.mkdir()
+        } else {
+            loadCacheToMemory()
         }
 
         webViewClient = CachingWebViewClient()
@@ -64,6 +67,7 @@ class NativeBoostWebView @JvmOverloads constructor(
                         // Unzip the file
                         unzipFile(zipFile, localCacheDir)
                         zipFile.delete() // Clean up
+                        loadCacheToMemory() // Reload cache to memory
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -89,6 +93,13 @@ class NativeBoostWebView @JvmOverloads constructor(
         }
     }
 
+    private fun loadCacheToMemory() {
+        localCacheDir.listFiles()?.forEach { file ->
+            val fileBytes = file.readBytes()
+            cacheMap[file.name] = fileBytes
+        }
+    }
+
     private inner class CachingWebViewClient : WebViewClient() {
         private var startTime: Long = 0
 
@@ -96,20 +107,13 @@ class NativeBoostWebView @JvmOverloads constructor(
             val url = request.url.toString()
             interceptDomainPrefix?.let { prefix ->
                 if (url.startsWith(prefix)) {
-                    val fileName = url.removePrefix(prefix)
-                    val localFile = File(localCacheDir, fileName)
-
-                    if (localFile.exists()) {
-                        return try {
-                            WebResourceResponse(
-                                "text/html",
-                                "UTF-8",
-                                FileInputStream(localFile)
-                            )
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                            null
-                        }
+                    val fileName = url.removePrefix(prefix).substringBefore("?").substringAfterLast("/")
+                    cacheMap[fileName]?.let { fileBytes ->
+                        return WebResourceResponse(
+                            "text/html",
+                            "UTF-8",
+                            fileBytes.inputStream()
+                        )
                     }
                 }
             }
