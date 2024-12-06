@@ -25,8 +25,7 @@ import com.winm2m.web.support.NativeBoostWebView
 class MainActivity : ComponentActivity() {
     companion object {
         const val entryUrl = "https://www.hiclass.net/mobile/help/faq"
-        const val fileUrl = "https://9200.01.r01.code.0.winm2m.com/hq.zip"
-        const val prefix = "https://www.hiclass.net"
+        const val fileUrl = "https://9200.01.r01.code.0.winm2m.com/sample.json"
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -38,7 +37,7 @@ class MainActivity : ComponentActivity() {
         val webView2 = NativeBoostWebView(this)
 
         webView2.setVersionCheckUrl(fileUrl)
-        webView2.setInterceptDomainPrefix(prefix)
+        webView2.setUseMemoryCache(true)
         webView2.checkForUpdates()
 
         var startTime1 = 0L
