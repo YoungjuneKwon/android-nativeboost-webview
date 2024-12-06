@@ -2,7 +2,6 @@ package com.winm2m.samples
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.webkit.WebResourceRequest
 import android.webkit.WebSettings.LOAD_NO_CACHE
 import android.webkit.WebView
 import android.webkit.WebViewClient
